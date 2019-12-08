@@ -1,183 +1,107 @@
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <stdio.h>
+#include <malloc.h>
+#include <stdlib.h>
+#include <time.h>
 
-void secondSteb ( int number );                                                //функция генерации графа и выбора действия с ним
-
-int main ( void )
-{   
-  int numNodes = 0;
-	printf("Please, enter the number of nodes in the graph (No more 50) :\n");
-  scanf (" %d", &numNodes);
-  getchar();
-  if ( numNodes <= 50 )
-    {
-      secondSteb ( numNodes );
-    }
-  else
-    {
-      printf("Is you immature? Go again!\n");
-      return -1;
-    }
-	return 0;
-}
-
-void showing (int** mass, int lenght);                                                                                               //Функция демонстрации матрицы смежности
-void creating (int** mass, int *allNodes, int lastNode);                                                                             //Функция создания текстового файла
-void check(int** mass, int *allNodes, int startNode, int lastNode, int *amountLinks);                                                //Функция проверки связности 
-void menu_acts (void);   
-
-void secondSteb ( int number )                               
+void bubbleSort(int *num, int size)
 {
-  int key = 0;
-  int startLinks = 0;
-  int *amountLinks = &startLinks;
-
-  int** pointer = (int **) malloc( number * sizeof(int*) ); // создания динамиеского двумерного массива
-  for (int i = 0; i < number; ++i)
-  {
-    pointer[i] = (int*) malloc ( number * sizeof(int) );
-  }
-
-    for (int i = 0; i < number; i++)
-  {
-    for (int j = i+1; j < number; j++)
-    {
-      pointer[i][j] = rand() % 2;
-      pointer[j][i] = pointer[i][j];
-    }
-    pointer[i][i] = 0;
-  }
-
-  int firstNodes[number];   //массив вершин графа
-  for (int i = 0; i < number; i++)
-  {
-    firstNodes[i] = 0;
-  }
-
-  int secNodes[number];   //2-й массив вершин графа
-  for (int i = 0; i < number; i++)
-  {
-    secNodes[i] = 0;
-  }
-
-  printf("Graph was created.\n What do you want to do with it:\n");
-  menu_acts();
-  while (key <= 4)
-  {
-    scanf("%d", &key);
-    switch(key)
-    {
-      case 1:
-      showing( pointer, number );
-      menu_acts();
-      break;
-
-      case 2:
-      check( pointer, firstNodes, 0, number, amountLinks);
-      if ( *amountLinks == (number-1) )                                             //Вывод информации связан ли глаф
+  for (int i = 0; i < size - 1; i++)
+    for (int j = (size - 1); j > i; j--) 
+      if (num[j - 1] > num[j]) 
       {
-        printf("Graph is connectivity\n\n");
+        int temp = num[j - 1]; 
+        num[j - 1] = num[j];
+        num[j] = temp;
       }
-      else
-      {
-        printf("Graph isn't connectivity\n\n");
-      }
-      menu_acts();
-      break;
-
-      case 3:
-      creating( pointer, secNodes, number);
-      menu_acts();
-      break;
-
-      case 4:
-      printf("Good luck!\n");
-      return;
-      break;
-
-      default:
-      printf("You didn't enter a number from the list. Go again! \n");
-      break;
-    }
-  }
-  return;
 }
 
-void showing (int** mass, int lenght)
+
+int main()
 {
-  for (int i = 0; i < lenght; i++)
+  int *a;
+  int n;
+  int i, j, m, k = 0;
+
+  printf("Введите количество вершин: ");
+  scanf("%d", &n);
+
+  int g[n];
+  int sort[n];
+  a = (int*)malloc(n*n * sizeof(int));
+
+srand(time(NULL));
+for (i = 0; i < n; ++i) { //цикл по строкам матрицы
+  for (j = 0+k; j < n; ++j) { //цикл по столбцам матрицы
+    if (j != i) { 
+        *(a + i*n + j) = rand() % 2;
+        g[j] = *(a + i*n + j);
+    } else {
+        *(a + i*n + j) = 0;
+        g[j] = *(a + i*n + j);
+      }
+    }
+      ++k;
+    
+  for (m = k-1; m < n; ++m)
+     *(a + m*n + (k-1)) = g[m];
+}
+
+// Вывод матрицы смежности
+  for (i = 0; i<n; i++) 
   {
-    for (int j = 0; j < lenght; j++)
-    {
-     printf("%d ", mass[i][j]);
-   }
-   printf("\n");
- }
- return;
-}
+    for (j = 0; j<n; j++)  
+      printf("%d ", *(a + i*n + j));
+      printf("\n");
+  }
+ k = 0;
 
-void check(int** mass, int *allNodes, int startNode, int lastNode, int *amountLinks)
-{
-  int linkedNode;
-  
-  allNodes[startNode] = 1;
-
-  for (linkedNode = 0; linkedNode < lastNode; linkedNode++)                  //подсчёт связанных вершин
-    if ((mass[startNode][linkedNode] != 0) && (allNodes[linkedNode] == 0)) 
-    {
-      printf("%d -> %d. Nodes are linked\n", startNode+1,linkedNode+1);
-      (*amountLinks)++;
-      check(mass, allNodes, linkedNode, lastNode, amountLinks);
+//Запись матрицы смежности в graph.dot для визуализации
+    FILE *file_ptr;
+    FILE* f = fopen("graph.dot", "w");
+    fprintf (f,"digraph test{\ngraph [bgcolor=green];\n");
+    for (i = 0; i<n; i++) { 
+      for (j = 0+k; j<n; j++)  
+         if (*(a + i*n + j) > 0)
+                    fprintf(f,"%d->%d[dir=both];\n",i,j);
+          else fprintf(f,"%d\n",i);
+    k++;
     }
+    fprintf(f,"}");              
+    fclose(f);
+
+//поиск вершин с нечетными степенями
+for (i = 0; i < n; ++i) {
+  g[i] = 0;
+  sort[i] = 0;
 }
 
-void checkTwo(int** mass, int *allNodes, int startNode, int lastNode);   //Функция записи в файл связанных вершин
-
-void creating(int** mass, int *allNodes, int lastNode)
-{
-  FILE *fp;
-  char* start = "graph G {";
-  char* end = "}";
-  char file[] = "graph.txt";
-
-  fp = fopen(file,"w");
-  fprintf(fp, "%s\n", start);
-  fclose(fp);
-
-  checkTwo(mass, allNodes, 0, lastNode);
-
-  FILE *fp1;
-  fp1 = fopen(file,"a");
-  fprintf(fp1, "%s\n", end);
-  fclose(fp1);
-
-  return;
-}
-
-void checkTwo(int** mass, int *allNodes, int startNode, int lastNode)
-{
-  int linkedNode;
-  
-  FILE *fp;
-  char file[] = "graph.txt";
-  fp = fopen(file,"a");
-
-  allNodes[startNode] = 1;
-
-  for (linkedNode = 0; linkedNode < lastNode; linkedNode++)                  //подсчёт связанных вершин
-    if ((mass[startNode][linkedNode] != 0) && (allNodes[linkedNode] == 0)) 
-    {
-      fprintf(fp,"%d -- %d\n", (startNode+1), (linkedNode+1));
-      checkTwo(mass, allNodes, linkedNode, lastNode);
+k = 0;
+m = 0;
+  for (i = 0; i < n; ++i) {
+    for (j = 0; j < n; ++j)
+      k = k + *(a + i*n + j);
+    if (k % 2 != 0) {
+      g[i] = k;
+      sort[i] = g[i];
+      m++;
     }
-  fclose(fp);
-}
+    k = 0;
+  }
+  printf("%d\n", m);
 
-void menu_acts (void)
-{
-  printf("1: Show the adjacency matrix\n");
-  printf("2: Check graph for connectivity\n");
-  printf("3: Create file.txt to display our graph on the monitor\n");
-  printf("4: Exit\n");
+//сортировка и вывод
+bubbleSort(sort,n);
+
+for (i = 0; i < n; ++i) 
+  for (j = 0; j < n; ++j)
+    if ((sort[i] == g[j]) && (sort[i] != 0)) {
+    printf("%d--", j);
+    g[j] = -1;
+    }
+ 
+printf("\nМатрица смежности записана в graph.dot для визуализации графа\n");
+free(a); 
+system("dot -Tpng graph.dot -oexample1.png");
+
+return 0;
 }
